@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEAY1 World - เกมการเรียนรู้หลักสูตรไทย</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+            overflow-x: hidden;
+            margin: 0;
+        }
+        .bounce-in {
+            animation: bounceIn 0.8s cubic-bezier(0.36, 0, 0.66, -0.56) both;
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); opacity: 1; }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+        .bg-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%233b82f6' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2v-4h4v-2h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2v-4h4v-2H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .success-bg {
+            background: radial-gradient(circle, #fef9c3 0%, #fef08a 100%);
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #3b82f6;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .progress-bar-fill {
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-pattern min-h-screen">
+
+    <!-- Top Bar -->
+    <div id="top-bar" class="fixed top-0 left-0 right-0 p-4 flex justify-between items-center z-40 hidden">
+        <button onclick="confirmExit()" class="bg-white/80 p-2 rounded-full shadow-sm hover:bg-white transition px-4 font-bold text-gray-600">🏠 หน้าหลัก</button>
+        <div class="flex items-center gap-4">
+            <div id="progress-container" class="hidden md:flex flex-col items-end mr-2">
+                <span class="text-xs font-bold text-blue-600 mb-1">ความคืบหน้าภารกิจ (<span id="progress-text">0/20</span>)</span>
+                <div class="w-48 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div id="progress-fill" class="progress-bar-fill h-full bg-blue-500" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="bg-yellow-400 text-yellow-900 px-4 py-2 rounded-full font-bold shadow-md flex items-center gap-2">
+                🪙 <span id="score-display">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Start Screen -->
+    <div id="start-screen" class="min-h-screen flex flex-col items-center justify-center text-center p-8 transition-opacity duration-500">
+        <div class="mb-6 float-animation">
+            <h1 class="text-8xl font-black text-blue-600 tracking-tighter drop-shadow-lg">
+                NEAY<span class="text-orange-500">1</span>
+            </h1>
+            <p class="text-xl text-gray-600 mt-2 font-light">ได้ความรู้ และ สนุกไปพร้อมๆกันนะ ✨</p>
+        </div>
+
+        <div class="space-y-4 bounce-in" style="animation-delay: 0.2s;">
+            <button onclick="showGrades()" class="bg-orange-500 hover:bg-orange-600 text-white text-2xl px-12 py-4 rounded-full shadow-xl transform transition hover:scale-105 active:scale-95 font-bold">
+                เริ่มภารกิจ 20 ข้อ! 🚀
+            </button>
+            <div class="flex justify-center gap-4 mt-8">
+                <button onclick="openChat()" class="bg-blue-100 text-blue-600 p-4 rounded-2xl shadow-sm hover:bg-blue-200 transition border-b-4 border-blue-300 font-bold">
+                    ✨ คุยกับ AI Tutor
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grade Selection -->
+    <div id="grade-screen" class="hidden min-h-screen flex flex-col items-center justify-center max-w-6xl mx-auto px-6 py-12 transition-all duration-500">
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-blue-800">เลือกระดับชั้นของคุณ</h2>
+            <p class="text-gray-500">ลุยภารกิจกันเลย ✨</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            <div onclick="startMission('อนุบาล 1-3')" class="bg-white p-6 rounded-3xl shadow-xl hover:shadow-2xl cursor-pointer transform transition hover:-translate-y-2 border-b-8 border-green-500 text-center">
+                <div class="text-6xl mb-4">🎨</div>
+                <h3 class="text-xl font-bold text-green-600 mb-2">อ.1 - อ.3</h3>
+                <button class="w-full mt-4 py-2 rounded-xl bg-green-50 text-green-700 font-bold text-sm">เริ่มภารกิจ</button>
+            </div>
+
+            <div onclick="startMission('ประถมศึกษาปีที่ 1-3')" class="bg-white p-6 rounded-3xl shadow-xl hover:shadow-2xl cursor-pointer transform transition hover:-translate-y-2 border-b-8 border-blue-400 text-center">
+                <div class="text-6xl mb-4">📚</div>
+                <h3 class="text-xl font-bold text-blue-500 mb-2">ป.1 - ป.3</h3>
+                <button class="w-full mt-4 py-2 rounded-xl bg-blue-50 text-blue-700 font-bold text-sm">เริ่มภารกิจ</button>
+            </div>
+
+            <div onclick="startMission('ประถมศึกษาปีที่ 4-6')" class="bg-white p-6 rounded-3xl shadow-xl hover:shadow-2xl cursor-pointer transform transition hover:-translate-y-2 border-b-8 border-orange-400 text-center">
+                <div class="text-6xl mb-4">🧩</div>
+                <h3 class="text-xl font-bold text-orange-500 mb-2">ป.4 - ป.6</h3>
+                <button class="w-full mt-4 py-2 rounded-xl bg-orange-50 text-orange-700 font-bold text-sm">เริ่มภารกิจ</button>
+            </div>
+
+            <div onclick="startMission('มัธยมศึกษาปีที่ 1-3')" class="bg-white p-6 rounded-3xl shadow-xl hover:shadow-2xl cursor-pointer transform transition hover:-translate-y-2 border-b-8 border-purple-500 text-center">
+                <div class="text-6xl mb-4">🚀</div>
+                <h3 class="text-xl font-bold text-purple-600 mb-2">ม.1 - ม.3</h3>
+                <button class="w-full mt-4 py-2 rounded-xl bg-purple-50 text-purple-700 font-bold text-sm">เริ่มภารกิจ</button>
+            </div>
+        </div>
+
+        <div class="mt-12">
+            <button onclick="showStart()" class="text-gray-500 hover:text-blue-600 transition">← กลับไปหน้าหลัก</button>
+        </div>
+    </div>
+
+    <!-- AI Quest Display Modal -->
+    <div id="quest-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+        <!-- Question Card -->
+        <div id="quest-card" class="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl relative transition-all">
+            <div id="quest-loading" class="flex flex-col items-center py-10">
+                <div class="spinner"></div>
+                <p class="mt-4 text-blue-600 font-bold text-center">✨ กำลังดึงบทเรียนที่เหมาะสมสำหรับคุณ...</p>
+            </div>
+            <div id="quest-content" class="hidden">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex items-center gap-2">
+                        <span id="subject-icon" class="text-3xl">🎯</span>
+                        <h3 id="quest-title" class="text-2xl font-bold text-gray-800"></h3>
+                    </div>
+                    <button onclick="getAIHint()" id="hint-btn" class="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full border border-yellow-200 hover:bg-yellow-200 transition">
+                        ✨ ขอคำใบ้จากพี่ AI
+                    </button>
+                </div>
+                
+                <div id="hint-box" class="hidden mb-4 p-3 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 text-sm rounded-r-lg italic"></div>
+
+                <div class="bg-blue-50 p-6 rounded-2xl mb-6 text-gray-700 text-lg font-medium" id="quest-body"></div>
+                <div class="grid grid-cols-1 gap-3" id="quest-options"></div>
+                
+                <!-- ปุ่มออกจากภารกิจที่ถูกแก้ไข -->
+                <button onclick="confirmExit()" class="mt-8 w-full py-3 text-red-400 hover:text-red-600 font-bold transition text-sm border-2 border-dashed border-red-100 rounded-xl">
+                    🚪 ออกจากภารกิจกลางคัน
+                </button>
+            </div>
+        </div>
+
+        <!-- Success Result View -->
+        <div id="success-view" class="hidden bg-white rounded-3xl max-w-lg w-full p-10 shadow-2xl relative text-center bounce-in overflow-hidden">
+            <div class="absolute inset-0 success-bg opacity-30 -z-10"></div>
+            <div class="text-7xl mb-4">🎉</div>
+            <h3 class="text-3xl font-bold text-orange-600 mb-2">เก่งมากเลย!</h3>
+            <p id="success-encouragement" class="text-gray-700 mb-4 text-lg"></p>
+            
+            <div id="ai-story-box" class="hidden mb-6 p-4 bg-white/60 rounded-xl border border-orange-200 text-sm text-gray-600 text-left italic max-h-32 overflow-y-auto">
+                <span class="font-bold text-orange-600 block mb-1">📖 นิทานรางวัลสั้น:</span>
+                <span id="ai-story-text"></span>
+            </div>
+
+            <div class="bg-yellow-100 text-yellow-700 py-3 rounded-2xl font-bold text-xl mb-6">
+                ได้รับ +10 เหรียญปัญญา 🪙
+            </div>
+            
+            <button id="next-quest-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xl py-4 rounded-2xl shadow-lg font-bold transition">
+                ข้อต่อไป (Next) ➔
+            </button>
+        </div>
+
+        <!-- Mission Completed View -->
+        <div id="mission-complete-view" class="hidden bg-white rounded-3xl max-w-lg w-full p-10 shadow-2xl relative text-center bounce-in overflow-hidden border-4 border-yellow-400">
+            <div class="text-8xl mb-4 animate-bounce">🏆</div>
+            <h3 class="text-4xl font-black text-blue-600 mb-2">ภารกิจสำเร็จ!</h3>
+            <p class="text-gray-600 mb-6 text-xl">คุณทำครบ 20 ข้อแล้ว สุดยอดไปเลย!</p>
+            
+            <div class="bg-blue-50 p-6 rounded-2xl mb-8">
+                <p class="text-gray-500 text-sm mb-1 uppercase tracking-widest font-bold">สรุปผลการเรียนรู้</p>
+                <div class="text-5xl font-bold text-blue-700" id="final-score-display">0</div>
+                <p class="text-blue-600 text-sm mt-1">เหรียญทองที่คุณสะสมได้</p>
+            </div>
+
+            <div id="ai-summary-feedback" class="mb-8 p-4 bg-yellow-50 rounded-xl text-sm text-yellow-800 italic border border-yellow-100">
+                กำลังให้พี่ AI สรุปพัฒนาการของคุณ...
+            </div>
+
+            <button onclick="showStart()" class="w-full bg-orange-500 hover:bg-orange-600 text-white text-xl py-4 rounded-2xl shadow-lg font-bold transition">
+                กลับหน้าหลัก
+            </button>
+        </div>
+    </div>
+
+    <!-- AI Tutor Floating Chat -->
+    <div id="ai-chat" class="hidden fixed bottom-6 right-6 w-80 md:w-96 z-50 flex flex-col shadow-2xl rounded-2xl overflow-hidden glass-panel border-2 border-blue-200">
+        <div class="bg-blue-600 p-4 text-white flex justify-between items-center">
+            <span class="font-bold flex items-center gap-2">✨ NEAY1 AI Tutor</span>
+            <button onclick="closeChat()" class="text-white/80 hover:text-white">✕</button>
+        </div>
+        <div id="chat-messages" class="h-80 overflow-y-auto p-4 space-y-4 bg-white/50 text-sm">
+            <div class="bg-blue-100 p-3 rounded-2xl rounded-tl-none text-blue-800">
+                สงสัยตรงไหนถามได้เลยนะ พี่ AI พร้อมช่วยจ้า!
+            </div>
+        </div>
+        <div id="chat-loading-indicator" class="hidden px-4 py-2 text-xs text-blue-500 font-bold animate-pulse">พี่ AI กำลังพิมพ์...</div>
+        <div class="p-4 bg-white border-t border-gray-100 flex gap-2">
+            <input id="chat-input" type="text" placeholder="พิมพ์คำถาม..." class="flex-1 border rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button onclick="sendMessage()" class="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const apiKey = "AIzaSyCcTir24pLVPpEBKgNmMIHyoTfVGI6ppvo";
+        let currentScore = 0;
+        let lastLevel = 'อนุบาล 1-3';
+        let currentQuestData = null;
+        let currentQuestionNumber = 0;
+        const TOTAL_QUESTIONS = 20;
+
+        function showGrades() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('grade-screen').classList.remove('hidden');
+            document.getElementById('top-bar').classList.remove('hidden');
+            document.getElementById('progress-container').classList.add('hidden');
+        }
+
+        function showStart() {
+            // ซ่อนหน้าจอทั้งหมดและแสดงหน้าแรก
+            document.getElementById('grade-screen').classList.add('hidden');
+            document.getElementById('quest-modal').classList.add('hidden');
+            document.getElementById('top-bar').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+            
+            // รีเซ็ตสถานะคำถาม
+            currentQuestionNumber = 0;
+        }
+
+        function confirmExit() {
+            // ตรวจสอบว่าอยู่ในระหว่างทำภารกิจหรือไม่
+            if (currentQuestionNumber > 0 && currentQuestionNumber <= TOTAL_QUESTIONS) {
+                if (confirm("คุณกำลังทำภารกิจอยู่ ต้องการยกเลิกและกลับสู่หน้าหลักใช่ไหม?")) {
+                    showStart();
+                    closeQuest(); // บังคับปิด Modal
+                }
+            } else {
+                showStart();
+                closeQuest();
+            }
+        }
+
+        function startMission(level) {
+            currentQuestionNumber = 0;
+            currentScore = 0;
+            document.getElementById('score-display').innerText = "0";
+            document.getElementById('progress-container').classList.remove('hidden');
+            generateQuest(level);
+        }
+
+        async function generateQuest(level) {
+            lastLevel = level;
+            currentQuestionNumber++;
+            
+            updateProgress();
+
+            const modal = document.getElementById('quest-modal');
+            const card = document.getElementById('quest-card');
+            const successView = document.getElementById('success-view');
+            const missionCompleteView = document.getElementById('mission-complete-view');
+            const loading = document.getElementById('quest-loading');
+            const content = document.getElementById('quest-content');
+            
+            modal.classList.remove('hidden');
+            card.classList.remove('hidden');
+            successView.classList.add('hidden');
+            missionCompleteView.classList.add('hidden');
+            loading.classList.remove('hidden');
+            content.classList.add('hidden');
+            document.getElementById('hint-box').classList.add('hidden');
+
+            const prompt = `คุณคือผู้เชี่ยวชาญการศึกษาของ NEAY1 จงสร้างโจทย์ 1 ข้อ สำหรับเด็กระดับ ${level} 
+            ตาม "หลักสูตรแกนกลางการศึกษาขั้นพื้นฐาน พุทธศักราช 2551 (ฉบับปรับปรุง)" 
+            สุ่มวิชา: คณิตศาสตร์, ภาษาไทย, ภาษาอังกฤษ (ห้ามวิทยาศาสตร์)
+            ผลลัพธ์เป็น JSON:
+            {
+                "title": "ชื่อสั้นๆ",
+                "question": "โจทย์ภาษาไทย",
+                "options": ["ช้อยส์ 1", "ช้อยส์ 2", "ช้อยส์ 3", "ช้อยส์ 4"],
+                "correctIndex": 0,
+                "encouragement": "คำชมเชยสั้นๆ",
+                "subject": "วิชา",
+                "icon": "emoji ของวิชา"
+            }`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: { responseMimeType: "application/json" }
+                    })
+                });
+
+                const data = await response.json();
+                currentQuestData = JSON.parse(data.candidates[0].content.parts[0].text);
+
+                document.getElementById('subject-icon').innerText = currentQuestData.icon || '🎯';
+                document.getElementById('quest-title').innerText = `${currentQuestData.title} (${currentQuestionNumber}/${TOTAL_QUESTIONS})`;
+                document.getElementById('quest-body').innerText = currentQuestData.question;
+                
+                const optionsDiv = document.getElementById('quest-options');
+                optionsDiv.innerHTML = '';
+                currentQuestData.options.forEach((opt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = "w-full p-4 text-left border-2 border-gray-100 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition font-medium text-gray-700";
+                    btn.innerText = opt;
+                    btn.onclick = () => handleAnswer(idx === currentQuestData.correctIndex, currentQuestData.encouragement);
+                    optionsDiv.appendChild(btn);
+                });
+
+                loading.classList.add('hidden');
+                content.classList.remove('hidden');
+            } catch (error) {
+                console.error(error);
+                closeQuest();
+            }
+        }
+
+        function updateProgress() {
+            const percent = (currentQuestionNumber / TOTAL_QUESTIONS) * 100;
+            document.getElementById('progress-fill').style.width = `${percent}%`;
+            document.getElementById('progress-text').innerText = `${currentQuestionNumber}/${TOTAL_QUESTIONS}`;
+        }
+
+        async function handleAnswer(isCorrect, encouragement) {
+            if (isCorrect) {
+                currentScore += 10;
+                document.getElementById('score-display').innerText = currentScore;
+                document.getElementById('quest-card').classList.add('hidden');
+                
+                if (currentQuestionNumber >= TOTAL_QUESTIONS) {
+                    showMissionComplete();
+                } else {
+                    document.getElementById('success-view').classList.remove('hidden');
+                    document.getElementById('success-encouragement').innerText = encouragement;
+                    generateAIStory();
+                    document.getElementById('next-quest-btn').onclick = () => generateQuest(lastLevel);
+                }
+            } else {
+                alert("เกือบถูกแล้ว! ลองทบทวนดูอีกนิดนะ พี่ AI เชื่อว่าคุณทำได้ ✨");
+            }
+        }
+
+        async function showMissionComplete() {
+            document.getElementById('success-view').classList.add('hidden');
+            document.getElementById('mission-complete-view').classList.remove('hidden');
+            document.getElementById('final-score-display').innerText = currentScore;
+            
+            const summaryBox = document.getElementById('ai-summary-feedback');
+            summaryBox.innerText = "พี่ AI กำลังรวบรวมคะแนนและเขียนคำชมให้คุณ...";
+
+            const prompt = `ผู้เรียนระดับ ${lastLevel} ทำภารกิจเรียนรู้ครบ 20 ข้อ และสะสมได้ ${currentScore} คะแนน 
+            จงเขียนคำชมเชยที่สร้างแรงบันดาลใจและสรุปความสำเร็จให้เขาในฐานะติวเตอร์ใจดี (ภาษาไทย 2-3 ประโยค)`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                const data = await response.json();
+                summaryBox.innerText = data.candidates[0].content.parts[0].text;
+            } catch (err) {
+                summaryBox.innerText = "สุดยอดไปเลย! คุณมีความตั้งใจมากที่ทำจนครบ 20 ข้อ พัฒนาต่อไปนะคนเก่ง!";
+            }
+        }
+
+        async function getAIHint() {
+            if (!currentQuestData) return;
+            const hintBox = document.getElementById('hint-box');
+            hintBox.innerText = "กำลังถามพี่ AI...";
+            hintBox.classList.remove('hidden');
+            const prompt = `ให้คำใบ้เด็ก ${lastLevel} สำหรับโจทย์: ${currentQuestData.question} (วิชา ${currentQuestData.subject}) ห้ามเฉลย`;
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                const data = await response.json();
+                hintBox.innerText = "✨ " + data.candidates[0].content.parts[0].text;
+            } catch (err) { hintBox.innerText = "ลองค่อยๆ อ่านโจทย์ดูอีกครั้งนะ"; }
+        }
+
+        async function generateAIStory() {
+            const storyBox = document.getElementById('ai-story-box');
+            const storyText = document.getElementById('ai-story-text');
+            storyBox.classList.remove('hidden');
+            storyText.innerText = "แต่งนิทานอยู่จ้า...";
+            const prompt = `แต่งนิทานจิ๋ว 2 ประโยคจากวิชา ${currentQuestData.subject} ให้เด็ก ${lastLevel}`;
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                const data = await response.json();
+                storyText.innerText = data.candidates[0].content.parts[0].text;
+            } catch (err) { storyBox.classList.add('hidden'); }
+        }
+
+        function closeQuest() { document.getElementById('quest-modal').classList.add('hidden'); }
+        function openChat() { document.getElementById('ai-chat').classList.remove('hidden'); }
+        function closeChat() { document.getElementById('ai-chat').classList.add('hidden'); }
+
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const messages = document.getElementById('chat-messages');
+            const loader = document.getElementById('chat-loading-indicator');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const userMsg = document.createElement('div');
+            userMsg.className = "bg-gray-100 p-3 rounded-2xl rounded-tr-none text-gray-800 self-end ml-8";
+            userMsg.innerText = text;
+            messages.appendChild(userMsg);
+            input.value = '';
+            messages.scrollTop = messages.scrollHeight;
+            loader.classList.remove('hidden');
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: `คุณคือติวเตอร์ NEAY1 ช่วยตอบคำถามเด็กเรื่อง: ${text}` }] }]
+                    })
+                });
+                const data = await response.json();
+                loader.classList.add('hidden');
+                const aiMsg = document.createElement('div');
+                aiMsg.className = "bg-blue-100 p-3 rounded-2xl rounded-tl-none text-blue-800 mr-8";
+                aiMsg.innerText = data.candidates[0].content.parts[0].text;
+                messages.appendChild(aiMsg);
+                messages.scrollTop = messages.scrollHeight;
+            } catch (err) { loader.classList.add('hidden'); }
+        }
+    </script>
+</body>
+</html>
